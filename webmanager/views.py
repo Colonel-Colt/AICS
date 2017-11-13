@@ -84,7 +84,7 @@ def upload_view(req):
         if not train:
             context = {'isUpload': False}
             return render(req, 'upload.html', context)
-        destination = open(os.path.join("D://AICS",train.name),'wb+')
+        destination = open(os.path.join("/../temp/",train.name),'wb+')
                 #write
         for chunk in train.chunks():
                 #each chunk
