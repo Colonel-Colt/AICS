@@ -2,15 +2,14 @@
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, render_to_response
 import os
-
+import time
+import sys
 from django.contrib.auth.decorators import login_required
 
-from CV import trainCNN
-from CV import trainSVM
-from CV import runCNN
-from CV import runSVM
+#from CV import trainCNN
+#from CV import trainSVM
 
 from .forms import UserForm
 
@@ -36,6 +35,9 @@ def register_view(req):
             user = User.objects.create_user(username=username, password=password)
             user.save()
 
+            path = os.getcwd() + "/" + username + "/"
+            if not os.path.exists(path):
+                os.makedirs(path)
             #Add session
             req.session['username'] = username
 
@@ -58,19 +60,20 @@ def login_view(req):
             #Get password
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-
             #Ask database
             user = authenticate(username = username,password = password)
             if user:
                 #redirect index
                 auth.login(req,user)
                 req.session['username'] = username
-                return redirect('upload')
+                return redirect('select')
             else:
                 #fail, stay login
                 context = {'isLogin': False, 'pswd':False}
                 return render(req, 'login.html', context)
     else:
+        if req.user.is_authenticated():
+            return redirect('select')
         context = {'isLogin': False,'pswd':True}
     return render(req, 'login.html', context)
 
@@ -81,24 +84,68 @@ def logout_view(req):
     auth.logout(req)
     return redirect('/')
 
+
 @login_required
-def upload_view(req):
+def select_view(req):
     context = {}
-    if req.method == "POST":# If post, run
-        train = req.FILES.get("train", None)  #Get the file
+    if req.method == 'POST':
+        if req.POST.has_key('SVM'):
+            redirect('upload_svm')
+            return render(req, 'upload_svm.html', context)
+        else:
+            redirect('upload_cnn')
+            return render(req, 'upload_cnn.html', context)
+    else:
+        context = {'isChosen': False}
+        return render(req, 'select.html', context)
+
+
+@login_required
+def upload_cnn_view(req):
+    context = {}
+    if req.method == "POST":
+        train = req.FILES.get("train", None)
         if not train:
             context = {'isUpload': False}
-            return render(req, 'upload.html', context)
-        destination = open(os.path.join("/home/ubuntu/aics_temp/",train.name),'wb+')
-                #write
-        for chunk in train.chunks():
-                #each chunk
-            destination.write(chunk)
-        destination.close()
+            return render(req, 'upload_cnn.html', context)
+        try:
+            destination = open(os.path.join(os.getcwd() + "/" + req.user.username + "/", train.name), 'wb+')
+            for chunk in train.chunks():
+                destination.write(chunk)
+            destination.close()
+            context = {'isUpload': True, 'filePath': destination, 'type': 'SVM'}
+        except IOError, e:
+            destination = os.path.join(os.getcwd() + "/" + req.user.username + "/", train.name)
         context = {'isUpload': True}
-	classes = ["0", "1"]
-	result = trainCNN.trainCNN("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
-        return render(req, 'upload.html', context)
+        time.sleep(10);
+        #classes = ["0", "1"]
+        #result = trainCNN.trainCNN("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
+        return render_to_response('success.html', context)
     else:
         context = {'isUpload': False}
-    return render(req, 'upload.html', context);
+    return render(req, 'upload_cnn.html', context);
+
+
+@login_required
+def upload_svm_view(req):
+    context = {}
+    if req.method == "POST":
+        train = req.FILES.get("train", None)
+        if not train:
+            context = {'isUpload': False}
+            return render(req, 'upload_svm.html', context)
+        try:
+            destination = open(os.path.join(os.getcwd() + "/" + req.user.username + "/", train.name), 'wb+')
+            for chunk in train.chunks():
+                destination.write(chunk)
+            destination.close()
+            context = {'isUpload': True, 'filePath': destination, 'type': 'SVM'}
+        except IOError, e:
+            destination = os.path.join(os.getcwd() + "/" + req.user.username + "/", train.name)
+        time.sleep(10);
+        #classes = ["0", "1"]
+        #result = trainSVM.trainSVM("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
+        return render_to_response('success.html', context)
+    else:
+        context = {'isUpload': False}
+    return render(req, 'upload_svm.html', context);

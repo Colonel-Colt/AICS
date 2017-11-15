@@ -8,8 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>AICS - Register</title>
-
+    <title>AICS - Upload</title>
     <!-- Bootstrap core CSS -->
     <link href="/../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
@@ -19,7 +18,13 @@
 
     <!-- Custom styles for this template -->
     <link href="/../static/css/landing-page.css" rel="stylesheet">
-
+         <script type="text/javascript" language="JavaScript">
+                        function hideButton(){
+                          document.getElementById("browse").style.display='none';
+                          document.getElementById("upload").style.display='none';
+                          document.getElementById("s0").style.visibility='visible';
+                        }
+      </script>
   </head>
 
   <>
@@ -34,7 +39,7 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
                         <li class="nav-item">
-              <a class="nav-link" href="login">Login</a>
+              <a class="nav-link" href="logout">Logout</a>
             </li>
                         <li class="nav-item">
               <a class="nav-link" href="register">Register</a>
@@ -57,32 +62,48 @@
     <div class="container">
       <div class="row">
       <div class="col-lg-5 mr-auto order-lg-2">
-        <h1 class="page-header">Register</h1>
+        <h1 class="page-header">Upload with CNN</h1>
         <hr class="section-heading-spacer">
         <div class="clearfix"></div>
-             <form action="{% url 'register' %}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-horizontal">
+             <form action="{% url 'upload_svm' %}" method="post" accept-charset="utf-8" enctype="multipart/form-data" class="form-horizontal">
                  {% csrf_token %}
                <div class="form-group">
                  <div class="col-lg-8 mr-auto">
-                  <input type="text" name="username" id="username" placeholder="Input Username" class="form-control">
+                     <input name="train" id="browse" type="file" lang="en">
+<!--
+                     <input id="train" type="file" style="display:none">  
+                     <div class="row">
+                <input id="filename" class="input-large" type="text" class="form-control">
+                    <a class="btn btn-large btn-primary" onclick="$('input[id=train]').click();"><font color="white">Browse</font></a>
+                     </div>
+                    <script type="text/javascript">
+                        $('input[id=train]').change(function()
+                        {  
+                            $('#filename').val($(this).val());  
+                        });  
+                       </script>
+-->
                   </div>
                </div>
                <div class="form-group">
-                 <div class="col-lg-8 mr-auto">
-                   <input type="password" name="password" id="password" placeholder="Input Password" value="" class="form-control">
-                 </div>
-               </div>
-               <div class="form-group">
                  <div class="col-lg-5 mr-auto">
-                  <input type="submit" value="Register" class="btn btn-large btn-primary">
+                  <input type="submit" id="upload" value="Upload" onclick="hideButton()" class="btn btn-large btn-success">
                  </div>
+                    <div class="spinner" id="s0" style="visibility:hidden">
+                      <div class="rect1" id="s1" style="visibility:inherit"></div>
+                      <div class="rect2" id="s2" style="visibility:inherit"></div>
+                      <div class="rect3" id="s3" style="visibility:inherit"></div>
+                      <div class="rect4" id="s4" style="visibility:inherit"></div>
+                      <div class="rect5" id="s5" style="visibility:inherit"></div>
+                    </div>
                </div>
-              </form>
+             </form>
       </div>
       <div class="col-lg-5 ml-auto order-lg-1">
-            <img class="img-fluid" src="/../static/img/login.jpg" alt="">
+            <img id="jpg" class="img-fluid" src="/../static/img/login.jpg" alt="">
       </div>
     </div>
       </div>
   </section>
   </body>
+</html>

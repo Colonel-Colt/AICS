@@ -21,7 +21,10 @@ urlpatterns = [
     url(r'^login$', views.login_view, name='login'),
     url(r'^logout$', views.logout_view),
     url(r'^register$', views.register_view, name='register'),
-    url(r'^upload$', views.upload_view, name='upload'),
+    url(r'^upload_cnn$', views.upload_cnn_view, name='upload_cnn'),
+    url(r'^upload_svm$', views.upload_svm_view, name='upload_svm'),
+    url(r'^select$', views.select_view, name='select'),
     url(r'^$', TemplateView.as_view(template_name="index.html"), name="index"),
     url(r'^index$', TemplateView.as_view(template_name="index.html"), name="index"),
+    url(r'^success$', TemplateView.as_view(template_name="success.html"), name="success"),
 ]
