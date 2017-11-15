@@ -7,6 +7,10 @@ import os
 
 from django.contrib.auth.decorators import login_required
 
+from CV import trainCNN
+from CV import trainSVM
+from CV import runCNN
+from CV import runSVM
 
 from .forms import UserForm
 
@@ -77,6 +81,7 @@ def logout_view(req):
     auth.logout(req)
     return redirect('/')
 
+@login_required
 def upload_view(req):
     context = {}
     if req.method == "POST":# If post, run
@@ -84,13 +89,15 @@ def upload_view(req):
         if not train:
             context = {'isUpload': False}
             return render(req, 'upload.html', context)
-        destination = open(os.path.join("/../temp/",train.name),'wb+')
+        destination = open(os.path.join("/home/ubuntu/aics_temp/",train.name),'wb+')
                 #write
         for chunk in train.chunks():
                 #each chunk
             destination.write(chunk)
-            destination.close()
-            context = {'isUpload': True}
+        destination.close()
+        context = {'isUpload': True}
+	classes = ["0", "1"]
+	result = trainCNN.trainCNN("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
         return render(req, 'upload.html', context)
     else:
         context = {'isUpload': False}
