@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="index.html"), name="index"),
     url(r'^index$', TemplateView.as_view(template_name="index.html"), name="index"),
     url(r'^success$', TemplateView.as_view(template_name="success.html"), name="success"),
+    url(r'^app/$', views.app_view, name="app"),
 ]
