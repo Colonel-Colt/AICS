@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/ubuntu/AICS/user/pet/cnn.model"
+all_model_checkpoint_paths: "/home/ubuntu/AICS/user/pet/cnn.model"
