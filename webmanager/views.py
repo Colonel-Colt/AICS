@@ -9,8 +9,10 @@ import random
 import sys
 from django.contrib.auth.decorators import login_required
 
-#from CV import trainCNN
-#from CV import trainSVM
+import trainCNN
+import trainSVM
+import runCNN
+import runSVM
 
 from .forms import UserForm
 
@@ -19,36 +21,41 @@ def app_view(req):
     context = {}
     if req.method == 'GET':
         username = req.GET['name']
-        modelpath = os.getcwd() + "/user/" + username + "/cnn.model"
+        modelpath = os.getcwd() + "/user/" + username + "/trainOK.cnn"
         if not os.path.exists(modelpath):
-            modelpath = os.getcwd() + "/user/" + username + "/svm.model"
+            modelpath = os.getcwd() + "/user/" + username + "/trainOK.svm"
             if not os.path.exists(modelpath):
                 return render(req, "error.html", context)
         context = {'username': username}
-        return render(req, "app.html", context)
+        req.session['appname'] = username
+	return render(req, "app.html", context)
     if req.method == 'POST':
         srcimg = req.FILES.get("image-file", None)
         s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         srcname = "".join(random.sample(s, 12))
-        try:
-            srcpath = open(os.path.join(os.getcwd() + "/temp/", srcname), 'wb')
+	try:
+	    srcpath = os.path.join(os.getcwd() + "/temp/", srcname)
+            srcfile = open(srcpath, 'wb')
             for chunk in srcimg.chunks():
-                srcpath.write(chunk)
-            srcpath.close()
+                srcfile.write(chunk)
+            srcfile.close()
         except IOError, e:
             srcpath = os.path.join(os.getcwd() + "/temp/", srcname)
-        username = req.GET['name']
-        modelpath = os.getcwd() + "/user/" + username + "/cnn.model"
+        username = req.session['appname']
+        modelpath = os.getcwd() + "/user/" + username + "/trainOK.cnn"
         if not os.path.exists(modelpath):
-            modelpath = os.getcwd() + "/user/" + username + "/svm.model"
+            modelpath = os.getcwd() + "/user/" + username + "/trainOK.svm"
             if not os.path.exists(modelpath):
                 return render(req, "error.html", context)
-            #result = runSVM.run(username, [srcpath])[0]
-            #
-        #result = runCNN.run(username, [srcpath])[0]
-
-
-
+            result = runSVM.run(username, [srcpath])[0]
+            if not result[0]:
+	    	return render(req, "error.html", context)
+	    context = {'class':result[1], 'p':result[2]}
+	    return render(req, "result.html", context)
+        result = runCNN.run(username, [srcpath])[0]
+	if not result[0]:
+	    return render(req, "error.html", context)
+	context = {'class':result[1], 'p':result[2]}
         return render(req, "result.html", context)
 
 
@@ -153,17 +160,15 @@ def upload_cnn_view(req):
             context = {'isUpload': False}
             return render(req, 'upload_cnn.html', context)
         try:
-            destination = open(os.path.join(os.getcwd() + "/user/" + req.user.username + "/", "input.txt"), 'wb')
+            destination = open(os.path.join(os.getcwd() + "/user/" + req.user.username + "/training_set/", "input.txt"), 'wb')
             for chunk in train.chunks():
                 destination.write(chunk)
             destination.close()
             context = {'isUpload': True, 'filePath': destination, 'type': 'CNN'}
         except IOError, e:
-            destination = os.path.join(os.getcwd() + "/user/" + req.user.username + "/", "input.txt")
+            destination = os.path.join(os.getcwd() + "/user/" + req.user.username + "/training_set/", "input.txt")
         context = {'isUpload': True}
-        time.sleep(10);
-        #classes = ["0", "1"]
-        #result = trainCNN.trainCNN("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
+        result = trainCNN.train(req.user.username)
         return render_to_response('success.html', context)
     else:
         context = {'isUpload': False}
@@ -179,17 +184,14 @@ def upload_svm_view(req):
             context = {'isUpload': False}
             return render(req, 'upload_svm.html', context)
         try:
-            destination = open(os.path.join(os.getcwd() + "/user/" + req.user.username + "/", "input.txt"), 'wb')
+            destination = open(os.path.join(os.getcwd() + "/user/" + req.user.username + "/training_set/", "input.txt"), 'wb')
             for chunk in train.chunks():
                 destination.write(chunk)
             destination.close()
             context = {'isUpload': True, 'filePath': destination, 'type': 'SVM'}
         except IOError, e:
-            destination = os.path.join(os.getcwd() + "/user/" + req.user.username + "/", "input.txt")
-        time.sleep(10);
-        #classes = ["0", "1"]
-        #result = trainSVM.trainSVM("/home/ubuntu/data/mnist_png/training", classes, 28,"/home/ubuntu/aics_temp/"+req.session["username"]+".model")
+            destination = os.path.join(os.getcwd() + "/user/" + req.user.username + "/training_set/", "input.txt")
+        result = trainSVM.train(req.user.username)
         return render_to_response('success.html', context)
     else:
         context = {'isUpload': False}
-    return render(req, 'upload_svm.html', context);
